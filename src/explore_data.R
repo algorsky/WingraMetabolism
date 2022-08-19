@@ -85,3 +85,20 @@ ggplot() +
   geom_hline(yintercept = 0.1,  linetype='dashed') +
   xlab('') + ylab('density difference') +
   theme_minimal()
+
+
+deep_df2 <- deep %>%
+  mutate(datetime = as.POSIXct(datetime, format = '%m/%d/%y %H:%M')) %>%
+  select(datetime, depth, Temp_C) %>%
+  filter(depth != 0.5) # 0.5 m depth seems to be faulty
+
+m.df <- reshape2::melt(deep_df2, "datetime")
+
+g1 <- ggplot(deep_df2, aes((datetime), depth)) +
+  geom_raster(aes(fill = as.numeric(Temp_C)), interpolate = TRUE) +
+  scale_fill_gradientn(limits = c(20,30),
+                       colours = rev(RColorBrewer::brewer.pal(11, 'Spectral')))+
+  theme_minimal()  +xlab('Time') +
+  ylab('Depth') +
+  labs(fill = 'Temp [degC]')+
+  scale_y_reverse() ; g1
