@@ -56,7 +56,7 @@ ggplot() +
                      labels=trans_format('log10', math_format(10^.x))) +
   theme_minimal()
 
-ggplot() +
+g.top <- ggplot() +
   geom_line(data = deep_df, aes(datetime, wtr_0, col = 'deep')) + 
   geom_point(data = deep_df, aes(datetime, wtr_0, col = 'deep')) +
   geom_line(data = mid_df, aes(datetime, wtr_0, col = 'middle')) + 
@@ -65,7 +65,7 @@ ggplot() +
   geom_point(data = shallow_df, aes(datetime, wtr_0, col = 'shallow')) +
   theme_minimal()
 
-ggplot() +
+g.bottom <- ggplot() +
   geom_line(data = deep_df, aes(datetime, wtr_2, col = 'deep')) + 
   geom_point(data = deep_df, aes(datetime, wtr_2, col = 'deep')) +
   geom_line(data = mid_df, aes(datetime, wtr_2, col = 'middle')) + 
@@ -75,7 +75,7 @@ ggplot() +
   theme_minimal()
 
 
-ggplot() +
+g.dens <- ggplot() +
   geom_line(data = deep_df, aes(datetime, water.density(wtr_2) - water.density(wtr_0), col = 'deep')) + 
   geom_point(data = deep_df, aes(datetime, water.density(wtr_2) - water.density(wtr_0), col = 'deep')) +
   geom_line(data = mid_df, aes(datetime, water.density(wtr_2) - water.density(wtr_0), col = 'middle')) + 
@@ -84,13 +84,13 @@ ggplot() +
   geom_point(data = shallow_df, aes(datetime, water.density(wtr_0.5) - water.density(wtr_0),col = 'shallow')) +
   geom_hline(yintercept = 0.1,  linetype='dashed') +
   xlab('') + ylab('density difference') +
-  theme_minimal()
+  theme_minimal(); g.dens
 
 
 deep_df2 <- deep %>%
   mutate(datetime = as.POSIXct(datetime, format = '%m/%d/%y %H:%M')) %>%
-  select(datetime, depth, Temp_C) %>%
-  filter(depth != 0.5) # 0.5 m depth seems to be faulty
+  select(datetime, depth, Temp_C) #%>%
+#  filter(depth != 0.5) # 0.5 m depth seems to be faulty
 
 m.df <- reshape2::melt(deep_df2, "datetime")
 
@@ -102,3 +102,91 @@ g1 <- ggplot(deep_df2, aes((datetime), depth)) +
   ylab('Depth') +
   labs(fill = 'Temp [degC]')+
   scale_y_reverse() ; g1
+
+mid_df2 <- mid %>%
+  mutate(datetime = as.POSIXct(datetime, format = '%m/%d/%y %H:%M')) %>%
+  select(datetime, depth, Temp_C) 
+
+
+g1 <- ggplot(mid_df2, aes((datetime), depth)) +
+  geom_raster(aes(fill = as.numeric(Temp_C)), interpolate = TRUE) +
+  scale_fill_gradientn(limits = c(20,30),
+                       colours = rev(RColorBrewer::brewer.pal(11, 'Spectral')))+
+  theme_minimal()  +xlab('Time') +
+  ylab('Depth') +
+  labs(fill = 'Temp [degC]')+
+  scale_y_reverse() ; g1
+
+do <- read_csv('../data/buoy_DO.csv')
+
+g.do <- ggplot(do %>% 
+               mutate(datetime = as.POSIXct(datetime, format = '%m/%d/%y %H:%M')), 
+             aes((datetime), as.numeric(DO_mgL), col = buoy)) +
+  geom_line() + geom_point() +
+  theme_minimal()  +xlab('Time') +
+  ylab('DO [mg/L]'); g.do
+
+g.top / g.bottom / g.dens / g.do
+
+do.df = do %>% 
+  mutate(datetime = as.POSIXct(datetime, format = '%m/%d/%y %H:%M')) %>%
+  filter(buoy == 'shallow')
+idx <- match(do.df$datetime, shallow_df$datetime)
+
+shallow_df = shallow_df %>%
+  mutate('dens' = water.density(wtr_0.5) - water.density(wtr_0))
+
+do.df$dens = shallow_df$dens[(idx)]
+
+ggplot(do.df %>%
+         mutate(day = factor(as.Date(datetime)),
+                hour = lubridate::hour(datetime)), aes(DO_mgL, dens, group= day, col = hour)) +
+  geom_point() +
+  facet_wrap(~ day) +
+  xlab('DO [mg/L]') + ylab('Density diff. [g/m3]') + 
+  ggtitle('Shallow') +
+  scale_colour_gradientn(colours = terrain.colors(10)) +
+  theme_minimal()
+
+
+
+do.df = do %>% 
+  mutate(datetime = as.POSIXct(datetime, format = '%m/%d/%y %H:%M')) %>%
+  filter(buoy == 'deep')
+idx <- match(do.df$datetime, deep_df$datetime)
+
+deep_df = deep_df %>%
+  mutate('dens' = water.density(wtr_2) - water.density(wtr_0))
+
+do.df$dens = deep_df$dens[(idx)]
+
+ggplot(do.df %>%
+         mutate(day = factor(as.Date(datetime)),
+                hour = lubridate::hour(datetime)), aes(DO_mgL, dens, group= day, col = hour)) +
+  geom_point() +
+  facet_wrap(~ day) +
+  xlab('DO [mg/L]') + ylab('Density diff. [g/m3]') + 
+  ggtitle('Deep') +
+  scale_colour_gradientn(colours = terrain.colors(10)) +
+  theme_minimal()
+
+
+do.df = do %>% 
+  mutate(datetime = as.POSIXct(datetime, format = '%m/%d/%y %H:%M')) %>%
+  filter(buoy == 'mid')
+idx <- match(do.df$datetime, mid_df$datetime)
+
+mid_df = mid_df %>%
+  mutate('dens' = water.density(wtr_2) - water.density(wtr_0))
+
+do.df$dens = mid_df$dens[(idx)]
+
+ggplot(do.df %>%
+         mutate(day = factor(as.Date(datetime)),
+                hour = lubridate::hour(datetime)), aes(DO_mgL, dens, group= day, col = hour)) +
+  geom_point() +
+  facet_wrap(~ day) +
+  xlab('DO [mg/L]') + ylab('Density diff. [g/m3]') + 
+  ggtitle('Mid') +
+  scale_colour_gradientn(colours = terrain.colors(10)) +
+  theme_minimal()
