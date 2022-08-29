@@ -89,8 +89,8 @@ g.dens <- ggplot() +
 
 deep_df2 <- deep %>%
   mutate(datetime = as.POSIXct(datetime, format = '%m/%d/%y %H:%M')) %>%
-  select(datetime, depth, Temp_C) #%>%
-#  filter(depth != 0.5) # 0.5 m depth seems to be faulty
+  select(datetime, depth, Temp_C) %>%
+filter(depth != 0.5) # 0.5 m depth seems to be faulty
 
 m.df <- reshape2::melt(deep_df2, "datetime")
 
