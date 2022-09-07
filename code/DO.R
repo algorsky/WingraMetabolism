@@ -10,10 +10,9 @@ do<- do%>%
                
                
 ggplot(do)+
-  geom_line(aes(x = datetime, y = DO_mgL, color = buoy))+
+  geom_line(aes(x = datetime, y = DO_mgL, color = buoy), alpha = 0.7)+
   ylab(expression(paste(O[2], " (mg " , L^-1,")")))+
   xlab("")+
-  theme_bw()+
+  theme_bw(base_size = 16)+
   theme(legend.title=element_blank())
 
-  
