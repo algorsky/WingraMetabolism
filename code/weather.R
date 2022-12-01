@@ -16,7 +16,7 @@ air_temp<-ggplot(dplyr::filter(weather, month(datetime) == 8))+
 wind<-ggplot(dplyr::filter(weather, month(datetime) == 8))+
   geom_col(aes(x = datetime, y = wind_speed))+
   geom_vline(xintercept = as.POSIXct("2022-08-07 00:00:00"), linetype = "dashed", alpha = 0.2)+
-  xylab("Wind speed (m/s)")+
+  ylab("Wind speed (m/s)")+
   xlab("")+
   theme_bw(base_size = 8)
 precip<-ggplot(dplyr::filter(weather, month(datetime) == 8))+
