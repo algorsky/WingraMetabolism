@@ -29,8 +29,10 @@ mid<-ggplot((mid_temp))+
   theme_bw()+
   theme(legend.title=element_blank())
 
-deep<-ggplot(deep_temp)+
-  geom_line(aes(x = datetime, y = Temp_C, color = as.factor(depth)))+
+deep<-ggplot()+
+  geom_line(data = dplyr::filter(deep_temp, depth !=1.5), aes(x = datetime, y = Temp_C, color = as.factor(depth)))+
+  geom_line(data = dplyr::filter(deep_temp, depth ==1.5 & (datetime < "2022-09-16 00:00:00")), aes(x = datetime, y = Temp_C, color = as.factor(depth)))+
+  geom_line(data = dplyr::filter(deep_temp, depth ==1.5 & (datetime > "2022-10-31 00:00:00")), aes(x = datetime, y = Temp_C, color = as.factor(depth)))+
   ylab('Deep Hole Temp (°C)') +
   labs(fill = ((expression("Temperature " ( degree*C)))))+
   xlab("")+
@@ -38,6 +40,6 @@ deep<-ggplot(deep_temp)+
   theme(legend.title=element_blank())
 
 shallow/mid/deep
-ggsave('figures/temp.png', height = 10, width = 8, dpi = 500, units = 'in')
+#ggsave('figures/temp.png', height = 10, width = 8, dpi = 500, units = 'in')
 
-
+ggview(units = "in", height = 10, width = 8, dpi = 500)
